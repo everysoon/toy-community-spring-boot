@@ -1,0 +1,111 @@
+
+spring:
+  jwt:
+    accessKey: alstjsl1!
+    refreshKey: alstjsl1269!
+    expiration:
+      access: 1d
+      refresh: 14d
+  jpa:
+    database: mysql
+    show-sql:  true
+    generate-ddl:  true
+    open-in-view:  false
+    hibernate:
+      ddl-auto: create
+  datasource:
+    # useSSL=false&allowPublicKeyRetrieval=true : Public Key Retrieval is not allowed error 수정
+    url: jdbc:mysql://localhost:3306/spring_security?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
+    username: root
+    password: alstjsl1!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            provider: kakao
+            clientName: Kakao
+            clientId: 752b1c9a978f60d55e2ab85d47685cfd
+            clientSecret: gyLMXebKyPhTVMaFZz3O3brimrlekzaJ
+            redirectUri: "http://localhost:6001/login/oauth2/callback/kakao"
+            authorizationGrantType: authorization_code
+            clientAuthenticationMethod: POST # without this : 401 [invalid_token_response] An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response: 401 Unauthorized: [no body]
+            scope:
+              - profile_nickname
+              - account_email
+              - profile_image
+              - gender
+              - age_range
+              - birthday
+          naver:
+            provider: naver
+            clientId: 4GlEBn03aajt00VGLbcV
+            clientSecret: SAjf0bwOfd
+            clientName: Naver
+            scope: name, email
+            authorizationGrantType: authorization_code
+            redirectUri: "http://localhost:6001/login/oauth2/callback/naver"
+          google:
+            provider: google
+            clientName: Google
+            clientId: 317971081004-1jg6hp88lq599f1bhsvrunogng0a15h9.apps.googleusercontent.com
+            clientSecret: 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
+            redirectUri: "http://localhost:6001/login/oauth2/callback/google"
+            scope:
+              - email
+              - profile
+          facebook:
+            provider: facebook
+            clientId: 1493307661405528
+            clientSecret: 02aceb8304eb4d1565a07bab1bb89d58
+            redirectUri: "http://localhost:6001/login/oauth2/callback/facebook"
+            clientName: Facebook
+            scope:
+              - email
+              - public_profile
+          github:
+            provider: github
+            clientName: Github
+            clientId: 03858ab2d96d40b9f5ca
+            clientSecret: 567d7e2797a8fa09ce989e195bdf5320f695ce79
+            redirectUri: "http://localhost:6001/login/oauth2/callback/github"
+            scope:
+              - user:email
+              - read:user
+        # naver, kakao need to set a provider
+        # https://developers.naver.com/docs/login/devguide/#2-2-1-%EC%86%8C%EC%85%9C-%EB%A1%9C%EA%B7%B8%EC%9D%B8
+        # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api
+        provider:
+
+          naver:
+            authorizationUri: https://nid.naver.com/oauth2.0/authorize
+            tokenUri: https://nid.naver.com/oauth2.0/token
+            userInfoUri: https://openapi.naver.com/v1/nid/me
+            userNameAttribute: response # get JSON response
+          kakao:
+            authorizationUri: https://kauth.kakao.com/oauth/authorize
+            tokenUri: https://kauth.kakao.com/oauth/token
+            userInfoUri: https://kapi.kakao.com/v2/user/me
+            userNameAttribute: id
+          facebook:
+            userNameAttribute: id
+            authorizationUri: https://www.facebook.com/dialog/oauth
+            tokenUri: https://graph.facebook.com/oauth/access_token
+            userInfoUri: https://graph.facebook.com/me
+app:
+  auth:
+    tokenSecret: 04ca023b39512e46d0c2cf4b48d5aac61d34302994c87ed4eff225dcf3b0a218739f3897051a057f9b846a69ea2927a587044164b7bae5e1306219d50b588cb1
+    tokenExpirationMsec: 864000000
+  cors:
+    allowedOrigins: http://localhost:7022/auth/redirect
+  oauth2:
+    # After successfully authenticating with the OAuth2 Provider,
+    # we'll be generating an auth token for the user and sending the token to the
+    # redirectUri mentioned by the client in the /oauth2/authorize request.
+    # We're not using cookies because they won't work well in mobile clients.
+    authorizedRedirectUris:
+      - http://localhost:7022/auth/redirect
+server:
+  port: 6001

@@ -1,0 +1,123 @@
+//querydsl 추가
+buildscript {
+    ext {
+        queryDslVersion = "5.0.0"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.5.3'
+    //querydsl 추가
+    id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+    id "io.franzbecker.gradle-lombok" version "3.0.0" // 최근 lombok - querydsl 오류
+    id 'io.spring.dependency-management' version '1.1.2'
+}
+group = 'com.soon'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: "com.ewerk.gradle.plugins.querydsl"
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    //If you are using a SNAPSHOT version
+    maven { url 'https://repo.spring.io/snapshot' }
+    //If you are using a milestone or release candidate version
+    //현재는 SNAPSHOT 버전이기 때문에 필요 없습니다.
+    //maven { url 'https://repo.spring.io/milestone' }
+}
+
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    //security
+//    implementation 'org.springframework.security:spring-security-core:5.4.1'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // oauth
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+//    implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure'
+
+    // jwt
+    // jjwt
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5") // 기존
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5") // 추가
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5") // 추가
+
+    // jpa
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // mysql
+    implementation 'mysql:mysql-connector-java:8.0.28'
+    runtimeOnly 'mysql:mysql-connector-java'
+    //querydsl 추가
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+
+
+    // 테스트시 slf4j initalizationError 해결
+    implementation "org.slf4j:slf4j-simple:1.7.25"
+
+    //JUnit4 추가
+    testImplementation("org.junit.vintage:junit-vintage-engine") {
+        exclude group: "org.hamcrest", module: "hamcrest-core"
+    }
+    testImplementation 'org.springframework:spring-test:5.3.23'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // spring boot configuration annotation processor not configured error
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+ext.profile = (!project.hasProperty('profile') || !profile) ? 'dev' : profile
+configurations {
+    all {
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
+
+    querydsl.extendsFrom compileClasspath
+}
+tasks.named('test') {
+    useJUnitPlatform()
+    processResources {
+        duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE
+    }
+
+}
+//querydsl 추가 시작
+def querydslDir = "$buildDir/generated/querydsl"
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+sourceSets {
+    main.java.srcDir querydslDir
+}
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}
+//querydsl 추가 끝
